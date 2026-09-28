@@ -1,49 +1,98 @@
-![Open Graph, Waitlist](https://github.com/basehub-ai/waitlist-template/blob/main/public/waitlist-template.png?raw=true)
+# Waitlist — BaseHub-powered Waitlist Template
 
-[BaseHub Templates](https://basehub.com/templates) are production-ready website templates, powered by BaseHub.
+A fully featured **waitlist landing page** for startups and indie hackers collecting early-adopter signups. Built on the official [BaseHub waitlist template](https://basehub.com/templates): BaseHub acts as the CMS (all copy, feature blocks and the waitlist itself are editable in the BaseHub dashboard), Resend sends transactional and newsletter emails, and Next.js renders it all.
 
-# Waitlist Template
+## Features
 
-[![Use template](https://basehub.com/template-button.svg)](https://basehub.com/basehub/waitlist-template)
+- **Waitlist signup form** (`components/waitlist-form/`) — email capture with idle/loading/success/error states, wired to BaseHub
+- **Mesh-gradient hero** (`components/mesh-gradient.tsx`) and dark/light-aware imagery (`dark-light-image.tsx`)
+- **Manifesto page** (`app/manifesto/page.tsx`) — long-form brand story page
+- **Newsletter emails** (`emails/newsletter/index.tsx`) — React Email templates rendered and sent via Resend
+- **Email unsubscribe route** (`app/api/email-unsubscribe`) — one-click unsubscribe handling
+- **Post-created webhook** (`app/api/webhooks/post-created`) — revalidates pages when BaseHub content changes
+- **Theme switcher** (`components/switch-theme`) with `next-themes` provider
+- **Playground notification** — BaseHub playground banner component
 
-Fully featured Waitlist Template.
+## Tech stack
 
-- 🔸 Ideal for startups and indie hackers seeking to build a waitlist for early adopters
-- 🔸 Allows for sending personalized emails to subscribers, encouraging interaction and excitement, all in BaseHub.
-- 🔸 Fully customizable to match your brand's voice and style
-- 🔸 Seamlessly integrates with BaseHub, ensuring a smooth process for managing your waitlist and sending newsletters
+- **Framework:** Next.js 15.2.4 (App Router), React 19
+- **CMS:** BaseHub (`basehub` SDK, `basehub.config.ts`, generated `basehub.d.ts`)
+- **Email:** Resend + react-email templates
+- **Styling:** Tailwind CSS 3.4, Radix UI primitives, `lucide-react`, `@paper-design/shaders-react` for shader effects
+- **Type safety:** TypeScript
 
-## Stack
+## Quick start
 
-- Next.js
-- BaseHub
-- Tailwind CSS
+```bash
+# install dependencies
+pnpm i        # or: npm install
 
-## One Click Deployment
+# configure environment (see below)
+cp .env.example .env.local   # if present, else create .env.local manually
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fbasehub-ai%2Fwaitlist-template&integration-ids=oac_xwgyJe0UwFLtsKIvIScYh0rY&project-name=waitlist-template&repository-name=waitlist-template&redirect-url=https%3A%2F%2Fbasehub.com%2Fapi%2Fvercel%2Fredirect-repo&env=RESEND_TOKEN&external-id=mly6i259eym3jkyvq6txyciu%3AQpFqhzC2n0yFl4DNHmCJL%3Aread%3A%3Cbasehub-null-value%3E%3A%3Cbasehub-null-value%3E%3A%3Cbasehub-null-value%3E&teamSlug=basehub&envDescription=Get%20your%20env%20token%20in%20https%3A%2F%2Fresend.com&envLink=https%3A%2F%2Fresend.com)
+# start the dev server
+pnpm dev      # -> http://localhost:3000
 
-_You can deploy this anywhere. Vercel works nicely and with one click._
+# production build
+pnpm build
+pnpm start
+```
 
-## Local Development
+## Environment variables
 
-**Install dependencies**
+Both are **required** — the app cannot build or run meaningfully without them:
 
-\`\`\`bash
-pnpm i
-\`\`\`
+| Variable | Where to get it | Purpose |
+|---|---|---|
+| `BASEHUB_TOKEN` | BaseHub dashboard → your repo → API token | Fetches CMS content (copy, waitlist config); blocks signup submissions if missing |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) API keys | Sends welcome/newsletter emails and powers unsubscribe links |
 
-**Add your BASEHUB_TOKEN to `.env.local`**
-
-\`\`\`txt
+```txt
 # .env.local
+BASEHUB_TOKEN="<your-basehub-token>"
+RESEND_API_KEY="<your-resend-api-key>"
+```
 
-BASEHUB_TOKEN="<get-it-from-your-basehub-repo>"
-RESEND_API_KEY="" # get it here https://resend.com/
-\`\`\`
+> Note: never commit `.env.local` — it is already listed in `.gitignore`.
 
-**Start the dev server**
+## Project structure
 
-\`\`\`bash
-pnpm dev
-\`\`\`
+```
+waitlist/
+├── app/
+│   ├── api/
+│   │   ├── email-unsubscribe/route.tsx   # Unsubscribe link handler
+│   │   └── webhooks/post-created/route.tsx # BaseHub revalidation webhook
+│   ├── manifesto/page.tsx               # Brand manifesto page
+│   ├── globals.css                      # Tailwind + global styles
+│   ├── layout.tsx                       # Root layout
+│   └── page.tsx                         # Landing page (fetches content from BaseHub)
+├── basehub.config.ts                    # BaseHub repo config
+├── basehub.d.ts                         # Generated BaseHub types
+├── components/
+│   ├── box/                             # Layout primitives
+│   ├── header/                          # Site header
+│   ├── switch-theme/                    # Dark/light toggle
+│   ├── waitlist-form/                   # Signup form with state machine
+│   ├── dark-light-image.tsx             # Theme-aware image component
+│   ├── mesh-gradient.tsx                # Animated gradient background
+│   ├── playground-notification.tsx      # BaseHub playground banner
+│   └── theme-provider.tsx               # next-themes wrapper
+├── context/index.tsx                    # App context providers
+├── emails/newsletter/index.tsx          # Newsletter email template (react-email)
+├── lib/
+│   ├── resend/index.ts                  # Resend client setup
+│   └── utils.ts                         # cn() helper
+├── assets/dots.tsx                      # Decorative SVG dots
+├── public/                              # Static assets (logos, placeholders)
+└── styles/                              # Additional styles
+```
+
+## Deployment notes
+
+- This is a **serverful Next.js app** — API routes, BaseHub fetching at request time, and email sending need a Node runtime plus the two secret env vars, so it does **not** work as a static export. Deploy where server features are available (Vercel one-click template deploy works best; any Next.js-capable host works too).
+- The BaseHub Vercel integration wires `RESEND_TOKEN` automatically via the "Deploy with Vercel" flow if you start from the template.
+
+---
+
+Built by Girish Lade — [ladestack.in](https://ladestack.in)
